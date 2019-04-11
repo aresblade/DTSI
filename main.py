@@ -1,9 +1,25 @@
 import datetime
-import time
 import sqlite3
 import unidecode
 import itertools
+import fuzzyMethods
+import skfuzzy as fuzz
+import numpy as np
+from skfuzzy import control as ctrl
 
+class FUZZY_OBJECT:
+    def __init__(self, index, voltage, current, temperature, humidity, date, city, stationName):
+        self.index = index
+        self.voltage = voltage
+        self.current = current
+        self.temperature = temperature
+        self.humidity = humidity
+        self.date = date
+        self.city = city
+        self.stationName = stationName
+
+fuzzy_object = []
+fuzzy_object_filtered = []
 fuzzy_values = ["low", "medium", "high", "critical"]
 fuzzy_var_inputs = ["temperature", "voltage", "humidity"]
 
@@ -31,14 +47,25 @@ def read_request(string):
 def main():
     print("Welcome in fuzzy SQL")
 
-    database = sqlite3.connect('./jamedia.db')
+    database = sqlite3.connect('jamedia.db')
     cursor = database.cursor()
-    sql = "SELECT VOLTAGE FROM DANE"
-    cursor.execute(sql)
+    sql = "SELECT ID, VOLTAGE, CURRENT, TEMPERATURE, HUMIDITY, DATE, STATION_NAME, CITY FROM DANE INNER JOIN NAMES on NAMES.STATION_ID = DANE.STATION_ID"
+   
+    for row in cursor.execute(sql):
+        fuzzy_object.append(FUZZY_OBJECT(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]))
 
     request = input('Write request: ')
-    read_request(request)
 
+    sqlFiltered = sql + ' WHERE' + fuzzyMethods.getSpecificTable(read_request(request))
+
+    for row in cursor.execute(sqlFiltered):
+        fuzzy_object_filtered.append(FUZZY_OBJECT(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]))
+    
+
+    # for row in read_request(request):
+    #     print(row)
+    temperature = np.arange(0, 11, 1)
+    a = fuzz.trimf(temperature, [0, 0, 5])
     database.close()
 
 if __name__ == '__main__':
