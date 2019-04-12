@@ -21,6 +21,14 @@ class VOLTAGE_OBJECT:
         self.medium = 'voltage > 11.5 and voltage < 13.5'
         self.high = 'voltage > 13'
 
+class TIME_OBJECT:
+    def __init__(self):
+        self.morning = 'time > 5 and time < 9'
+        self.midday = 'time = 12'
+        self.afternoon = 'time > 13 and time < 16'
+        self.evening = 'time > 18 and time < 20'
+        self.night = 'time >= 0 and time < 3 and time > 22 and time <=24'
+
 def getSpecificTable(userArray):
     index = 0
     completeString = ''
@@ -50,6 +58,17 @@ def getSpecificTable(userArray):
             completeString = completeString + ' ' + VOLTAGE_OBJECT().medium
         elif 'high voltage' in obj: 
             completeString = completeString + ' ' + VOLTAGE_OBJECT().high
+
+        elif 'morning' in obj:
+            completeString = completeString + ' ' + TIME_OBJECT().morning
+        elif 'midday' in obj: 
+            completeString = completeString + ' ' + TIME_OBJECT().midday
+        elif 'afternoon' in obj: 
+            completeString = completeString + ' ' + TIME_OBJECT().afternoon
+        elif 'evening' in obj: 
+            completeString = completeString + ' ' + TIME_OBJECT().evening
+        elif 'night' in obj: 
+            completeString = completeString + ' ' + TIME_OBJECT().night
         index = index + 1
 
     return completeString
@@ -77,7 +96,7 @@ def temperatureFuzzify(userArray, value):
         elif value >= 40:
             return 1
         else:
-            return fuzz.trapmf(arrayValue, [35, 40, 40])[0]
+            return fuzz.trimf(arrayValue, [35, 40, 40])[0]
     elif 'critical temperature' in userArray: 
         if value <= 5:
             return 1
@@ -85,3 +104,92 @@ def temperatureFuzzify(userArray, value):
             return 1
         else:
             return abs(fuzz.trapmf(arrayValue, [5, 10, 50, 55])[0] - 1)
+
+def humidityFuzzify(userArray, value):
+    arrayValue = np.array([value])
+ 
+    if 'low humidity' in userArray:
+        if value <= 20:
+            return 1
+        elif value >= 30:
+            return 0
+        else:
+            return fuzz.trimf(arrayValue, [20, 20, 30])[0]
+    elif 'medium humidity' in userArray: 
+        if value <= 20:
+            return 0
+        elif value >= 80:
+            return 0
+        else:
+            return fuzz.trapmf(arrayValue, [20, 40, 60, 80])[0]
+    elif 'high humidity' in userArray: 
+        if value <= 70:
+            return 0
+        elif value >= 80:
+            return 1
+        else:
+            return fuzz.trimf(arrayValue, [70, 80, 80])[0]
+
+def voltageFuzzify(userArray, value):
+    arrayValue = np.array([value])
+
+    if 'low voltage' in userArray:
+        if value <= 11.5:
+            return 1
+        elif value >= 12:
+            return 0
+        else:
+            return fuzz.trimf(arrayValue, [11.5, 11.5, 12])[0]
+    elif 'medium voltage' in userArray: 
+        if value <= 11.5:
+            return 0
+        elif value >= 13.5:
+            return 0
+        else:
+            return fuzz.trapmf(arrayValue, [11.5, 12, 13, 13.5])[0]
+    elif 'high voltage' in userArray: 
+        if value <= 13:
+            return 0
+        elif value >= 13.5:
+            return 1
+        else:
+            return fuzz.trapmf(arrayValue, [13, 13.5, 13.5])[0]
+        
+def timeFuzzify(userArray, value):
+    arrayValue = np.array([value])
+ 
+    if 'morning' in userArray:
+        if value <= 3:
+            return 0
+        elif value >= 11:
+            return 0
+        else:
+            return fuzz.trapmf(arrayValue, [3, 5, 9, 11])[0]
+    elif 'midday' in userArray: 
+        if value <= 10:
+            return 0
+        elif value >= 14:
+            return 0
+        else:
+            return fuzz.trimf(arrayValue, [10, 12, 14])[0]
+    elif 'afternoon' in userArray: 
+        if value <= 11:
+            return 0
+        elif value >= 18:
+            return 0
+        else:
+            return fuzz.trapmf(arrayValue, [11, 13, 16, 18])[0]
+    elif 'evening' in userArray: 
+        if value <= 16:
+            return 0
+        elif value >= 22:
+            return 0
+        else:
+            return fuzz.trapmf(arrayValue, [16, 18, 20, 22])[0]
+    elif 'night' in userArray: 
+        if value <= 3:
+            return 1
+        elif value >= 22:
+            return 1
+        else:
+            return abs(fuzz.trapmf(arrayValue, [3, 5, 20, 22])[0] - 1)
