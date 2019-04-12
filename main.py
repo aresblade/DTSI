@@ -51,6 +51,9 @@ def main():
     database = sqlite3.connect('jamedia.db')
     cursor = database.cursor()
     sql = "SELECT ID, VOLTAGE, CURRENT, TEMPERATURE, HUMIDITY, DATE, STATION_NAME, CITY FROM DANE INNER JOIN NAMES on NAMES.STATION_ID = DANE.STATION_ID"
+   
+    for row in cursor.execute(sql):
+        fuzzy_object.append(FUZZY_OBJECT(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]))
 
     request = input('Write request: ')
 

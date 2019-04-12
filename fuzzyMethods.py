@@ -1,6 +1,13 @@
 import skfuzzy as fuzz
 import numpy as np
 from skfuzzy import control as ctrl
+class TIME_OBJECT:
+    def __init__(self):
+        self.morning = 'time > 5 and time < 9'
+        self.midday = 'time = 12'
+        self.afternoon = 'time > 13 and time < 16'
+        self.evening = 'time > 18 and time < 20'
+        self.night = 'time >= 0 and time < 3 and time > 22 and time <=24'
 
 class TEMPERATURE_OBJECT:
     def __init__(self):
@@ -20,14 +27,6 @@ class VOLTAGE_OBJECT:
         self.low = 'voltage < 11.5'
         self.medium = 'voltage > 11.5 and voltage < 13.5'
         self.high = 'voltage > 13'
-
-class TIME_OBJECT:
-    def __init__(self):
-        self.morning = 'time > 5 and time < 9'
-        self.midday = 'time = 12'
-        self.afternoon = 'time > 13 and time < 16'
-        self.evening = 'time > 18 and time < 20'
-        self.night = 'time >= 0 and time < 3 and time > 22 and time <=24'
 
 def getSpecificTable(userArray):
     index = 0
@@ -72,6 +71,14 @@ def getSpecificTable(userArray):
         index = index + 1
 
     return completeString
+
+def defineFuzzify(obj, temperatureValue): 
+    if 'temperature' in obj:
+        return temperatureFuzzify(obj, temperatureValue)
+    elif 'humidity' in obj:
+        return humidityFuzzify(obj, humidityFuzzify)
+    elif 'voltage' in obj:
+        return voltageFuzzify(obj, voltageFuzzify)
 
 def temperatureFuzzify(userArray, value):
     arrayValue = np.array([value])
@@ -154,7 +161,7 @@ def voltageFuzzify(userArray, value):
             return 1
         else:
             return fuzz.trapmf(arrayValue, [13, 13.5, 13.5])[0]
-        
+
 def timeFuzzify(userArray, value):
     arrayValue = np.array([value])
  
@@ -193,3 +200,4 @@ def timeFuzzify(userArray, value):
             return 1
         else:
             return abs(fuzz.trapmf(arrayValue, [3, 5, 20, 22])[0] - 1)
+
