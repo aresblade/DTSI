@@ -1,13 +1,16 @@
 import skfuzzy as fuzz
 import numpy as np
 from skfuzzy import control as ctrl
+
+import datetime
+
 class TIME_OBJECT:
     def __init__(self):
-        self.morning = 'time > 5 and time < 9'
-        self.midday = 'time = 12'
-        self.afternoon = 'time > 13 and time < 16'
-        self.evening = 'time > 18 and time < 20'
-        self.night = 'time >= 0 and time < 3 and time > 22 and time <=24'
+        self.morning = 'time > "3" and time < "11"'
+        self.midday = 'time > "10" and time < "14"'
+        self.afternoon = 'time > "11" and time < "18"'
+        self.evening = 'time > "16" and time < "22"'
+        self.night = 'time >= "0" and time < "5" and time > "20" and time <="24"'
 
 class TEMPERATURE_OBJECT:
     def __init__(self):
@@ -31,54 +34,84 @@ class VOLTAGE_OBJECT:
 def getSpecificTable(userArray):
     index = 0
     completeString = ''
+    added = False
     for obj in userArray:
-        if index >= 1 and index < len(userArray):
-            completeString = completeString + ' and'
-
         if 'low temperature' in obj:
             completeString = completeString + ' ' + TEMPERATURE_OBJECT().low
+            added = True
         elif 'medium temperature' in obj: 
             completeString = completeString + ' ' + TEMPERATURE_OBJECT().medium
+            added = True 
         elif 'high temperature' in obj: 
             completeString = completeString + ' ' + TEMPERATURE_OBJECT().high
+            added = True
         elif 'critical temperature' in obj: 
             completeString = completeString + ' ' + TEMPERATURE_OBJECT().critical
+            added = True
 
         elif 'low humidity' in obj:
             completeString = completeString + ' ' + HUMIDITY_OBJECT().low
+            added = True
         elif 'medium humidity' in obj: 
             completeString = completeString + ' ' + HUMIDITY_OBJECT().medium
+            added = True
         elif 'high humidity' in obj: 
             completeString = completeString + ' ' + HUMIDITY_OBJECT().high
+            added = True
 
         elif 'low voltage' in obj:
             completeString = completeString + ' ' + VOLTAGE_OBJECT().low
+            added = True
         elif 'medium voltage' in obj: 
             completeString = completeString + ' ' + VOLTAGE_OBJECT().medium
+            added = True
+
         elif 'high voltage' in obj: 
             completeString = completeString + ' ' + VOLTAGE_OBJECT().high
+            added = True
 
         elif 'morning' in obj:
             completeString = completeString + ' ' + TIME_OBJECT().morning
+            added = True
+
         elif 'midday' in obj: 
             completeString = completeString + ' ' + TIME_OBJECT().midday
+            added = True
+
         elif 'afternoon' in obj: 
             completeString = completeString + ' ' + TIME_OBJECT().afternoon
+            added = True
+
         elif 'evening' in obj: 
             completeString = completeString + ' ' + TIME_OBJECT().evening
+            added = True
+
         elif 'night' in obj: 
             completeString = completeString + ' ' + TIME_OBJECT().night
+            added = True
+        else:
+            added = False
+
+
+        if index >= 0 and index < len(userArray) - 1 and added == True:
+            completeString = completeString + ' and'
+
         index = index + 1
+
+    while "and" in completeString[-3:len(completeString) + 1]:
+        completeString = completeString[0:-3]
 
     return completeString
 
-def defineFuzzify(obj, temperatureValue): 
+def defineFuzzify(obj, temperature, humidity, voltage, time): 
     if 'temperature' in obj:
-        return temperatureFuzzify(obj, temperatureValue)
+        return temperatureFuzzify(obj, temperature)
     elif 'humidity' in obj:
-        return humidityFuzzify(obj, humidityFuzzify)
+        return humidityFuzzify(obj, humidity)
     elif 'voltage' in obj:
-        return voltageFuzzify(obj, voltageFuzzify)
+        return voltageFuzzify(obj, voltage)
+    elif 'morning' in obj or 'midday' in obj or 'evening' in obj or 'night' in obj or 'afternoon' in obj :
+        return timeFuzzify(obj, time)
 
 def temperatureFuzzify(userArray, value):
     arrayValue = np.array([value])
@@ -160,11 +193,12 @@ def voltageFuzzify(userArray, value):
         elif value >= 13.5:
             return 1
         else:
-            return fuzz.trapmf(arrayValue, [13, 13.5, 13.5])[0]
+            return fuzz.trimf(arrayValue, [13, 13.5, 13.5])[0]
 
 def timeFuzzify(userArray, value):
+    value = datetime.datetime.strptime(value, '%H:%M:%S').hour + (datetime.datetime.strptime(value, '%H:%M:%S').minute / 60)
     arrayValue = np.array([value])
- 
+
     if 'morning' in userArray:
         if value <= 3:
             return 0
